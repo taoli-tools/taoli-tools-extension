@@ -1,4 +1,36 @@
 const TYPE = 'EXTENSION_PROXY_FETCH'
+const FETCH_TIMEOUT = 10000
+
+const PROXY_DOMAINS = [
+  'larksuite.com',
+  '48.club',
+  'gate.io',
+  'gate.com',
+  'gateio.ws',
+  'bitget.com',
+  'binance.com',
+  'coinbase.com',
+  'okx.com',
+  'apex.exchange',
+  'bybit.com',
+  'mexc.com',
+  'backpack.exchange',
+  'asterdex.com',
+  'grvt.io',
+  'pacifica.fi',
+  'extended.exchange',
+  'standx.com',
+]
+
+function isAllowedUrl(input) {
+  let hostname
+  try {
+    hostname = new URL(input).hostname
+  } catch {
+    return false
+  }
+  return PROXY_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))
+}
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   const { type, req } = msg
@@ -7,12 +39,24 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 
   ;(async () => {
+    const [input, init] = req
+    if (typeof input !== 'string' || !isAllowedUrl(input)) {
+      sendResponse('Blocked: URL not allowed')
+      return
+    }
+
+    const abortController = new AbortController()
+    const timer = setTimeout(() => abortController.abort('Fetch timeout'), FETCH_TIMEOUT)
     try {
-      const abortController = new AbortController()
-      setTimeout(() => abortController.abort('Fetch timeout'), 10000)
-      const res = await fetch(...req, { signal: abortController.signal })
+      const res = await fetch(input, { ...init, signal: abortController.signal })
       const text = await res.text()
-      const headers = Object.fromEntries(res.headers.entries())
+      const headers = {}
+      res.headers.forEach((value, key) => {
+        // body is already decoded to text; keeping these would misdescribe the reconstructed Response
+        if (key !== 'content-encoding' && key !== 'content-length') {
+          headers[key] = value
+        }
+      })
 
       sendResponse({
         status: res.status,
@@ -22,6 +66,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       })
     } catch (err) {
       sendResponse(String(err))
+    } finally {
+      clearTimeout(timer)
     }
   })()
 
@@ -33,26 +79,7 @@ chrome.action.onClicked.addListener(async () => {
   await chrome.tabs.create({ url })
 })
 
-const urlFilters = [
-  '||larksuite.com/',
-  '||48.club/',
-  '||gate.io/',
-  '||gate.com/',
-  '||gateio.ws/',
-  '||bitget.com/',
-  '||binance.com/',
-  '||coinbase.com/',
-  '||okx.com/',
-  '||apex.exchange/',
-  '||bybit.com/',
-  '||mexc.com/',
-  '||backpack.exchange/',
-  '||asterdex.com/',
-  '||grvt.io/',
-  '||pacifica.fi/',
-  '||extended.exchange/',
-  '||standx.com/'
-]
+const urlFilters = PROXY_DOMAINS.map((domain) => `||${domain}/`)
 
 const rules = urlFilters.map((urlFilter, index) => ({
   id: index + 1,
