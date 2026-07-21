@@ -10,7 +10,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     try {
       const abortController = new AbortController()
       setTimeout(() => abortController.abort('Fetch timeout'), 10000)
-      const res = await fetch(...req, { signal: abortController.signal })
+      const [input, init = {}] = req
+      const res = await fetch(input, { ...init, signal: abortController.signal })
       const text = await res.text()
       const headers = Object.fromEntries(res.headers.entries())
 
