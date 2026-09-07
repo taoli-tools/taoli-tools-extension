@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Taoli Tools Extension",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Taoli Tools Extension",
   "permissions": ["declarativeNetRequest"],
   "host_permissions": ["*://*/*"],
@@ -22,6 +22,9 @@
       "resources": ["injected.js"]
     }
   ],
+  "externally_connectable": {
+    "matches": ["https://taoli.tools/*", "http://localhost:5173/*"]
+  },
   "action": {
     "default_title": "Taoli Tools Extension",
     "default_icon": {
