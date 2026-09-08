@@ -35,9 +35,7 @@ const onMessage = (msg, _sender, sendResponse) => {
   return true
 }
 
-// 旧版网页经 content script 转发到这里
-chrome.runtime.onMessage.addListener(onMessage)
-// 新版网页通过 externally_connectable 直接发到这里, 不再经过 content script 的两次拷贝
+// 网页通过 externally_connectable 直接发到这里, 不经过 content script
 chrome.runtime.onMessageExternal.addListener(onMessage)
 
 chrome.action.onClicked.addListener(async () => {
