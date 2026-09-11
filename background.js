@@ -43,28 +43,32 @@ chrome.action.onClicked.addListener(async () => {
   await chrome.tabs.create({ url })
 })
 
-const urlFilters = [
-  '||larksuite.com/',
-  '||48.club/',
-  '||gate.io/',
-  '||gate.com/',
-  '||gateio.ws/',
-  '||bitget.com/',
-  '||binance.com/',
-  '||coinbase.com/',
-  '||okx.com/',
-  '||apex.exchange/',
-  '||bybit.com/',
-  '||mexc.com/',
-  '||backpack.exchange/',
-  '||asterdex.com/',
-  '||grvt.io/',
-  '||pacifica.fi/',
-  '||extended.exchange/',
-  '||standx.com/'
+const headerRules = [
+  ...[
+    'larksuite.com',
+    '48.club',
+    'gate.io',
+    'gate.com',
+    'gateio.ws',
+    'bitget.com',
+    'binance.com',
+    'coinbase.com',
+    'okx.com',
+    'apex.exchange',
+    'bybit.com',
+    'mexc.com',
+    'backpack.exchange',
+    'asterdex.com',
+    'grvt.io',
+    'pacifica.fi',
+    'extended.exchange',
+    'standx.com',
+  ].map((domain) => ({ urlFilter: `||${domain}/`, origin: `https://${domain}` })),
+  { urlFilter: '||interface.gateway.uniswap.org/', origin: 'https://app.uniswap.org' },
+  { urlFilter: '||explorer.pancakeswap.com/', origin: 'https://pancakeswap.finance' },
 ]
 
-const rules = urlFilters.map((urlFilter, index) => ({
+const rules = headerRules.map(({ urlFilter, origin }, index) => ({
   id: index + 1,
   priority: index + 1,
   action: {
@@ -72,12 +76,12 @@ const rules = urlFilters.map((urlFilter, index) => ({
     requestHeaders: [
       {
         header: 'origin',
-        value: `https://${urlFilter.substring(2, urlFilter.length - 1)}`,
+        value: origin,
         operation: 'set',
       },
       {
         header: 'referer',
-        value: `https://${urlFilter.substring(2, urlFilter.length - 1)}`,
+        value: origin,
         operation: 'set',
       },
     ],
