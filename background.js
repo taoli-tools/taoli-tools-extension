@@ -43,10 +43,6 @@ chrome.action.onClicked.addListener(async () => {
   await chrome.tabs.create({ url })
 })
 
-// 网站自己校验 origin 的接口 (如 CoinBase/OKX 默认只认自己域名的请求), 浏览器发起时
-// origin 是任务栏里 taoli.tools (或 chrome-extension 本身), 会被拒. DNR 规则统一
-// 把 origin/referer 改写成目标域名自身, 个别接口认别的 origin (如 Uniswap 的
-// interface gateway 只回 app.uniswap.org), 在这里单独指定
 const headerRules = [
   ...[
     'larksuite.com',
